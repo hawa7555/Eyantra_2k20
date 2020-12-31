@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: ebot_description
+    relative_path: urdf/ur_robotiq.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/ur_robotiq.srdf
+  CONFIG:
+    author_name: Harshal_Wadhwa
+    author_email: wadhwaharshal07@gmail.com
+    generated_timestamp: 1608918313

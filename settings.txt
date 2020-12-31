@@ -1,0 +1,2 @@
+ur_robotiq_planning_group
+vaccum_gripper

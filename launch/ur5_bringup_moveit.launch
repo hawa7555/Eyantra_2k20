@@ -1,0 +1,63 @@
+<launch>
+
+<!-- <include file="$(find ebot_description)/launch/ur5_test.launch">
+</include> -->
+
+<include file="$(find ebot_description)/launch/task3.launch">
+</include>
+    
+<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0" />
+    <param name="tf_prefix" type="string" value="" />
+</node>
+    
+<node name="joint_state_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn joint_state_controller" respawn="false" output="screen"/>
+
+<rosparam file="$(find ebot_mani)/config/ros_controllers.yaml" command="load"/>
+<rosparam file="$(find ebot_mani)/config/joint_state_controller.yaml" command="load"/>    
+<rosparam file="$(find ebot_mani)/config/trajectory_control.yaml" command="load"/>
+
+
+<node name="arm_controller_spawner" pkg="controller_manager" type="controller_manager" 
+args="spawn arm_controller gripper_controller" respawn="false" output="screen"/>
+
+<include file="$(find ebot_mani)/launch/planning_context.launch" >
+    <arg name="load_robot_description" value="true" />
+</include>
+  
+<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="/use_gui" value="false"/>
+    <rosparam param="/source_list">[/joint_states]</rosparam>
+</node>
+  
+<include file="$(find ebot_mani)/launch/move_group.launch">
+    <arg name="publish_monitored_planning_scene" value="true" />
+ </include>
+  
+<include file="$(find ebot_mani)/launch/moveit_rviz.launch">
+  <arg name="rviz_config" value="$(find ebot_mani)/launch/moveit.rviz"/>
+  <arg name="debug" value="false"/>
+</include>
+
+<!-- <arg name = "scene_file" default="$(find ebot_description)/scenes/collisionFree.scene" />
+<node name = "moveit_publish_scene_from_text" pkg="moveit_ros_planning" type=
+"moveit_publish_scene_from_text" args= "$(arg scene_file)" /> -->
+
+<node pkg="ebot_mani" type="hybrid.py" name="hybrid" output="screen"/>
+
+<arg name="duration" default="120"/>
+	<arg name="rec_name" default="task3.bag"/>
+	<arg name="record" default="false"/>
+	<group if="$(arg record)">
+		<node name="state_node" pkg="topic_tools" type="throttle"
+			args="messages /gazebo/model_states 10.0"/>
+
+		<node name="task3_rosbag" pkg="rosbag" type="record"
+			args="record -O $(find ebot_mani)/bag_files/$(arg rec_name) --duration=$(arg duration) 
+			/gazebo/model_states_throttle 
+			/gripper_controller/follow_joint_trajectory/feedback
+			/arm_controller/follow_joint_trajectory/feedback
+			/tf" output="screen"/>
+	</group>
+
+</launch>
